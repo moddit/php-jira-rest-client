@@ -545,6 +545,12 @@ class IssueService extends \JiraRestApi\JiraClient
         $ret = $this->exec('search//jql', $data, 'POST');
         $json = json_decode($ret);
 
+        // Convert description Atlassian document format to plain text
+        $json->issues = collect($json->issues)->transform(function ($issue) {
+            $issue->fields->description = $this->toPlainText($issue->fields->description->content);
+            return $issue;
+        })->toArray();
+
         $result = null;
 
         $result = $this->json_mapper->map(
@@ -1294,5 +1300,69 @@ class IssueService extends \JiraRestApi\JiraClient
 
         // transition keyword not found
         throw new JiraException("Transition name '$untranslatedName' not found on JIRA Server.");
+    }
+
+    /**
+     * Function to convert Atlassian document format to plain text
+     */
+    private function toPlainText(array $nodes): string
+    {
+        $text = '';
+
+        foreach ($nodes as $node) {
+            $type = $node->type ?? null;
+
+            switch ($type) {
+                case 'text':
+                    $text .= $node->text ?? '';
+                    break;
+
+                case 'hardBreak':
+                    $text .= "\n";
+                    break;
+
+                case 'paragraph':
+                    if (!empty($node->content)) {
+                        $text .= $this->toPlainText($node->content);
+                    }
+                    $text .= "\n\n";
+                    break;
+
+                case 'bulletList':
+                    if (!empty($node->content)) {
+                        foreach ($node->content as $listItem) {
+                            $text .= '- ' . trim($this->toPlainText($listItem->content ?? [])) . "\n";
+                        }
+                    }
+                    $text .= "\n";
+                    break;
+
+                case 'listItem':
+                    if (!empty($node->content)) {
+                        $text .= $this->toPlainText($node->content);
+                    }
+                    break;
+
+                case 'expand':
+                    if (!empty($node->content)) {
+                        $text .= $this->toPlainText($node->content);
+                    }
+                    break;
+
+                case 'table':
+                case 'mediaSingle':
+                case 'media':
+                    // skip for now
+                    break;
+
+                default:
+                    if (!empty($node->content)) {
+                        $text .= $this->toPlainText($node->content);
+                    }
+                    break;
+            }
+        }
+
+        return $text;
     }
 }

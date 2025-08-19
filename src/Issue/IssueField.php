@@ -26,7 +26,7 @@ class IssueField implements \JsonSerializable
 
     public ?DateTimeInterface $updated = null;
 
-    public ?Description $description = null;
+    public ?string $description = null;
 
     public ?Priority $priority = null;
 
@@ -265,7 +265,7 @@ class IssueField implements \JsonSerializable
     /**
      * set issue description.
      */
-    public function setDescription(?Description $description): static
+    public function setDescription(string $description): static
     {
         if (!empty($description)) {
             $this->description = $description;
