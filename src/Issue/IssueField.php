@@ -2,8 +2,8 @@
 
 namespace JiraRestApi\Issue;
 
-use AllowDynamicProperties;
 use DateTimeInterface;
+use AllowDynamicProperties;
 use JiraRestApi\ClassSerialize;
 use JiraRestApi\Project\Project;
 
@@ -26,7 +26,7 @@ class IssueField implements \JsonSerializable
 
     public ?DateTimeInterface $updated = null;
 
-    public ?string $description = null;
+    public ?Description $description = null;
 
     public ?Priority $priority = null;
 
@@ -265,7 +265,7 @@ class IssueField implements \JsonSerializable
     /**
      * set issue description.
      */
-    public function setDescription(?string $description): static
+    public function setDescription(?Description $description): static
     {
         if (!empty($description)) {
             $this->description = $description;
