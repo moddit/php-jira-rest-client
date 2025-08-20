@@ -547,7 +547,9 @@ class IssueService extends \JiraRestApi\JiraClient
 
         // Convert description Atlassian document format to plain text
         $json->issues = collect($json->issues)->transform(function ($issue) {
-            $issue->fields->description = $this->toPlainText($issue->fields->description->content);
+            if ($issue->fields->description !== null) {
+                $issue->fields->description = $this->toPlainText($issue->fields->description->content);
+            }
             return $issue;
         })->toArray();
 
